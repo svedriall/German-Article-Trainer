@@ -1,0 +1,5 @@
+{
+  "name": "German Article Trainer",
+  "description": "An interactive web application to help users learn German articles (Der, Die, Das) for A1 level words. Features include interactive guessing, example sentences, and text-to-speech pronunciation for words and phrases.",
+  "requestFramePermissions": []
+}
