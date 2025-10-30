@@ -107,7 +107,6 @@ const MainApp: React.FC = () => {
 
         <Header
           selectedLanguage={language}
-          onLanguageChange={() => {}} // Language changes handled by LanguageSelector now
           inputMode={inputMode}
           onInputModeChange={setInputMode}
           onShuffle={shuffleWords}

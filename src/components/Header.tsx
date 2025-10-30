@@ -5,7 +5,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 interface HeaderProps {
   selectedLanguage: Language;
-  onLanguageChange: (language: Language) => void;
   inputMode: InputMode;
   onInputModeChange: (mode: InputMode) => void;
   onShuffle: () => void;
@@ -13,7 +12,6 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({
   selectedLanguage,
-  onLanguageChange,
   inputMode,
   onInputModeChange,
   onShuffle
