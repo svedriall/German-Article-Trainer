@@ -1,5 +1,5 @@
 import { doc, updateDoc, increment, setDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { db, isFirebaseEnabled } from '../config/firebase';
 
 export interface WordProgress {
   wordId: string;
@@ -23,6 +23,8 @@ export interface TestResult {
 
 export class ProgressService {
   static async recordAnswer(userId: string, wordId: string, isCorrect: boolean) {
+    if (!isFirebaseEnabled || !db) return;
+    
     const userRef = doc(db, 'users', userId);
     
     // Update user stats
@@ -46,6 +48,8 @@ export class ProgressService {
   }
 
   static async recordTestResult(userId: string, testResult: TestResult) {
+    if (!isFirebaseEnabled || !db) return;
+    
     const userRef = doc(db, 'users', userId);
     
     await updateDoc(userRef, {
