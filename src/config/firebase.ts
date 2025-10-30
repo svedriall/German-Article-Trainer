@@ -17,15 +17,10 @@ const appId = env.VITE_FIREBASE_APP_ID;
 // Check if Firebase is configured (API key should start with AIza for real Firebase projects)
 const isFirebaseConfigured = apiKey && apiKey !== 'demo-key' && apiKey.startsWith('AIza');
 
-console.log('🔥 Firebase Environment Debug:', {
-  env: env,
-  hasApiKey: !!apiKey,
-  apiKeyValue: apiKey,
-  apiKeyStart: apiKey?.substring(0, 10),
-  authDomain,
-  projectId,
+// Safe environment check (no API keys exposed)
+console.log('🔥 Firebase Status:', {
   isConfigured: isFirebaseConfigured,
-  envKeys: Object.keys(env).filter(k => k.startsWith('VITE_FIREBASE'))
+  hasRequiredEnvVars: !!(apiKey && authDomain && projectId)
 });
 
 let app: FirebaseApp | null = null;
@@ -43,7 +38,7 @@ const firebaseConfig = {
   appId: appId || '1:123456789:web:demo'
 };
 
-console.log('🔧 Firebase Config Being Used:', firebaseConfig);
+// Firebase config ready (not logging sensitive data)
 
 try {
   // Initialize Firebase
