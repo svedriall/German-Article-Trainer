@@ -1,8 +1,12 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import { translations } from '../services/translations';
 
 const UserStatsBar: React.FC = () => {
   const { user, profile } = useAuth();
+  const { language } = useLanguage();
+  const uiText = translations[language];
 
   if (!user || !profile) {
     return null;
@@ -30,30 +34,30 @@ const UserStatsBar: React.FC = () => {
           </div>
 
           {/* Stats */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-3 sm:space-x-6 text-xs sm:text-sm">
             <div className="text-center">
-              <div className="text-lg font-bold text-green-400">{profile.stats.correctAnswers}</div>
-              <div className="text-xs text-gray-400">Correct</div>
+              <div className="text-sm sm:text-lg font-bold text-green-400">{profile.stats.correctAnswers}</div>
+              <div className="text-xs text-gray-400">{uiText.correct}</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-red-400">{profile.stats.incorrectAnswers || 0}</div>
-              <div className="text-xs text-gray-400">Wrong</div>
+              <div className="text-sm sm:text-lg font-bold text-red-400">{profile.stats.incorrectAnswers || 0}</div>
+              <div className="text-xs text-gray-400">{uiText.incorrect}</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-blue-400">{profile.stats.streak}</div>
-              <div className="text-xs text-gray-400">Streak</div>
+              <div className="text-sm sm:text-lg font-bold text-blue-400">{profile.stats.streak}</div>
+              <div className="text-xs text-gray-400">{uiText.streak}</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-purple-400">{profile.stats.testsTaken || 0}</div>
-              <div className="text-xs text-gray-400">Tests</div>
+              <div className="text-sm sm:text-lg font-bold text-purple-400">{profile.stats.testsTaken || 0}</div>
+              <div className="text-xs text-gray-400">{uiText.testsCompleted}</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-yellow-400">
+              <div className="text-sm sm:text-lg font-bold text-yellow-400">
                 {profile.stats.totalWords > 0 
                   ? Math.round((profile.stats.correctAnswers / profile.stats.totalWords) * 100)
                   : 0}%
               </div>
-              <div className="text-xs text-gray-400">Accuracy</div>
+              <div className="text-xs text-gray-400">{uiText.accuracy}</div>
             </div>
           </div>
         </div>

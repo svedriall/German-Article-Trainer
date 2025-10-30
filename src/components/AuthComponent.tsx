@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import { translations } from '../services/translations';
 
 const AuthComponent: React.FC = () => {
   const { user, profile, signInWithGoogle, signInWithEmail, signUpWithEmail, logout } = useAuth();
+  const { language } = useLanguage();
+  const uiText = translations[language];
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -86,7 +90,7 @@ const AuthComponent: React.FC = () => {
             onClick={logout}
             className="text-red-400 hover:text-red-300 text-sm px-3 py-1 rounded border border-red-400 hover:border-red-300 transition-colors"
           >
-            Logout
+            {uiText.logout}
           </button>
         </div>
       </div>
@@ -96,18 +100,18 @@ const AuthComponent: React.FC = () => {
   return (
     <div className="bg-gray-800 p-6 rounded-lg max-w-md mx-auto">
       <h2 className="text-2xl font-bold text-white mb-6 text-center">
-        {isLogin ? 'Sign In' : 'Sign Up'}
+        {isLogin ? uiText.signIn : uiText.signUp}
       </h2>
 
       <button
         onClick={signInWithGoogle}
         className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded mb-4 transition-colors"
       >
-        Continue with Google
+        {uiText.continueWithGoogle}
       </button>
       
       <div className="text-xs text-yellow-400 mb-2 p-2 bg-yellow-900/20 rounded">
-        ℹ️ First time? Use "Sign Up" to create an account, then "Sign In" to access it.
+        {uiText.firstTimeSignUpInfo}
       </div>
 
       <div className="text-center text-gray-400 mb-4">or</div>
@@ -116,7 +120,7 @@ const AuthComponent: React.FC = () => {
         {!isLogin && (
           <input
             type="text"
-            placeholder="Display Name"
+            placeholder={uiText.displayName}
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             className="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500"
@@ -126,23 +130,21 @@ const AuthComponent: React.FC = () => {
         
         <input
           type="email"
-          placeholder="Email"
+          placeholder={uiText.email}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500"
           required
         />
-        
+
         <input
           type="password"
-          placeholder="Password"
+          placeholder={uiText.password}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500"
           required
-        />
-
-        {error && (
+        />        {error && (
           <div className="text-red-400 text-sm text-center">{error}</div>
         )}
 
@@ -150,7 +152,7 @@ const AuthComponent: React.FC = () => {
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors"
         >
-          {isLogin ? 'Sign In' : 'Sign Up'}
+          {isLogin ? uiText.signIn : uiText.signUp}
         </button>
       </form>
 
@@ -159,7 +161,7 @@ const AuthComponent: React.FC = () => {
           onClick={() => setIsLogin(!isLogin)}
           className="text-blue-400 hover:text-blue-300 text-sm"
         >
-          {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+          {isLogin ? uiText.noAccountSignUp : uiText.alreadyHaveAccount}
         </button>
       </div>
     </div>

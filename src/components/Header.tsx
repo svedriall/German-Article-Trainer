@@ -1,6 +1,7 @@
 import React from 'react';
 import { Language, InputMode } from '../types';
 import { translations } from '../services/translations';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface HeaderProps {
   selectedLanguage: Language;
@@ -17,7 +18,12 @@ const Header: React.FC<HeaderProps> = ({
   onInputModeChange,
   onShuffle
 }) => {
+  const { setLanguage } = useLanguage();
   const uiText = translations[selectedLanguage];
+  
+  const handleLanguageChange = (newLanguage: Language) => {
+    setLanguage(newLanguage);
+  };
   
   return (
     <header className="flex flex-col sm:flex-row justify-between items-center w-full p-4 bg-gray-800/50 rounded-xl backdrop-blur-sm">
@@ -50,14 +56,14 @@ const Header: React.FC<HeaderProps> = ({
           {(['en', 'tr'] as Language[]).map((lang) => (
             <button
               key={lang}
-              onClick={() => onLanguageChange(lang)}
+              onClick={() => handleLanguageChange(lang)}
               className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${
                 selectedLanguage === lang
                   ? 'bg-indigo-600 text-white'
                   : 'text-gray-300 hover:bg-gray-600'
               }`}
             >
-              {lang.toUpperCase()}
+              {lang === 'en' ? '🇺🇸 EN' : '🇹🇷 TR'}
             </button>
           ))}
         </div>
