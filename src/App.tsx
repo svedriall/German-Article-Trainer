@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { wordList } from './services/wordlist';
 import { Word, InputMode, Article } from './types';
 import Header from './components/Header';
@@ -41,13 +41,14 @@ const MainApp: React.FC = () => {
     </div>;
   }
 
-  const handleNextWord = useCallback(() => {
+  // Simplified non-memoized functions to debug React error #310
+  const handleNextWord = () => {
     setShowResult(false);
     setIsCorrect(null);
     setCurrentIndex((prevIndex) => (prevIndex + 1) % shuffledWords.length);
-  }, [shuffledWords.length]);
+  };
 
-  const handleGuess = useCallback(async (guess: Article) => {
+  const handleGuess = async (guess: Article) => {
     if (!currentWord) return; // Safety check for undefined currentWord
     const isCorrectAnswer = guess.toLowerCase() === currentWord.article;
     
@@ -65,19 +66,19 @@ const MainApp: React.FC = () => {
       // Refresh profile to get updated stats
       setTimeout(() => refreshProfile(), 100); // Small delay to ensure DB is updated
     }
-  }, [currentWord, user, refreshProfile]);
+  };
   
-  const shuffleWords = useCallback(() => {
+  const shuffleWords = () => {
     setShuffledWords(prevWords => [...prevWords].sort(() => Math.random() - 0.5));
     setCurrentIndex(0);
     setShowResult(false);
     setIsCorrect(null);
-  }, []);
+  };
 
-  const closeQuickTest = useCallback(() => setShowQuickTest(false), []);
-  const closeAuth = useCallback(() => setShowAuth(false), []);
-  const openAuth = useCallback(() => setShowAuth(true), []);
-  const openQuickTest = useCallback(() => setShowQuickTest(true), []);
+  const closeQuickTest = () => setShowQuickTest(false);
+  const closeAuth = () => setShowAuth(false);
+  const openAuth = () => setShowAuth(true);
+  const openQuickTest = () => setShowQuickTest(true);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">

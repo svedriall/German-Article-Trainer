@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, setDoc, getDoc, getFirestore } from 'firebase/firestore';
 import { auth, db, isFirebaseEnabled } from '../config/firebase';
@@ -152,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(updatedProfile);
   };
 
-  const refreshProfile = useCallback(async () => {
+  const refreshProfile = async () => {
     if (!user || !isFirebaseEnabled) return;
     
     try {
@@ -167,7 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error refreshing profile:', error);
     }
-  }, [user]); // Remove db dependency to fix React error #310
+  };
 
   const value: AuthContextType = {
     user,
