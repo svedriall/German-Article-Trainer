@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, getFirestore } from 'firebase/firestore';
 import { auth, db, isFirebaseEnabled } from '../config/firebase';
 
 interface UserProfile {
@@ -153,10 +153,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const refreshProfile = useCallback(async () => {
-    if (!user || !db) return;
+    if (!user || !isFirebaseEnabled) return;
     
     try {
-      const docRef = doc(db, 'users', user.uid);
+      // Get fresh Firestore instance to avoid dependency issues
+      const firestore = db || getFirestore();
+      const docRef = doc(firestore, 'users', user.uid);
       const docSnap = await getDoc(docRef);
       
       if (docSnap.exists()) {
@@ -165,7 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error refreshing profile:', error);
     }
-  }, [user, db]);
+  }, [user]); // Remove db dependency to fix React error #310
 
   const value: AuthContextType = {
     user,

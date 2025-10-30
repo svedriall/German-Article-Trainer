@@ -57,7 +57,7 @@ const MainApp: React.FC = () => {
       // Refresh profile to get updated stats
       setTimeout(() => refreshProfile(), 100); // Small delay to ensure DB is updated
     }
-  }, [currentWord, user]); // Temporarily removed refreshProfile to debug React error
+  }, [currentWord, user, refreshProfile]);
   
   const shuffleWords = useCallback(() => {
     setShuffledWords(prevWords => [...prevWords].sort(() => Math.random() - 0.5));
