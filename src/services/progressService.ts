@@ -1,4 +1,4 @@
-import { doc, updateDoc, increment, setDoc } from 'firebase/firestore';
+import { doc, increment, setDoc } from 'firebase/firestore';
 import { db, isFirebaseEnabled } from '../config/firebase';
 
 export interface WordProgress {
@@ -25,42 +25,59 @@ export class ProgressService {
   static async recordAnswer(userId: string, wordId: string, isCorrect: boolean) {
     if (!isFirebaseEnabled || !db) return;
     
-    const userRef = doc(db, 'users', userId);
-    
-    // Update user stats
-    await updateDoc(userRef, {
-      'stats.totalWords': increment(1),
-      [`stats.${isCorrect ? 'correctAnswers' : 'incorrectAnswers'}`]: increment(1),
-      'stats.streak': isCorrect ? increment(1) : 0,
-      lastActive: new Date()
-    });
+    try {
+      const userRef = doc(db, 'users', userId);
+      
+      // Update user stats (use setDoc with merge to create if doesn't exist)
+      await setDoc(userRef, {
+        stats: {
+          totalWords: increment(1),
+          [isCorrect ? 'correctAnswers' : 'incorrectAnswers']: increment(1),
+          streak: isCorrect ? increment(1) : 0,
+        },
+        lastActive: new Date()
+      }, { merge: true });
 
-    // Update word-specific progress
-    const progressRef = doc(db, 'users', userId, 'progress', wordId);
-    const difficulty = await this.calculateSpacedRepetition(wordId, isCorrect);
-    
-    await updateDoc(progressRef, {
-      [`${isCorrect ? 'correct' : 'incorrect'}`]: increment(1),
-      lastSeen: new Date(),
-      difficulty,
-      nextReview: this.calculateNextReview(difficulty)
-    });
+      // Update word-specific progress
+      const progressRef = doc(db, 'users', userId, 'progress', wordId);
+      const difficulty = await this.calculateSpacedRepetition(wordId, isCorrect);
+      
+      // Use setDoc with merge to create progress document if it doesn't exist
+      await setDoc(progressRef, {
+        correct: isCorrect ? increment(1) : increment(0),
+        incorrect: !isCorrect ? increment(1) : increment(0),
+        lastSeen: new Date(),
+        difficulty,
+        nextReview: this.calculateNextReview(difficulty)
+      }, { merge: true });
+      
+    } catch (error) {
+      console.error('Error recording answer:', error);
+    }
   }
 
   static async recordTestResult(userId: string, testResult: TestResult) {
     if (!isFirebaseEnabled || !db) return;
     
-    const userRef = doc(db, 'users', userId);
-    
-    await updateDoc(userRef, {
-      'stats.testsTaken': increment(1),
-      'stats.averageAccuracy': testResult.accuracy, // This should be calculated as running average
-      lastActive: new Date()
-    });
+    try {
+      const userRef = doc(db, 'users', userId);
+      
+      // Update user stats (use setDoc with merge)
+      await setDoc(userRef, {
+        stats: {
+          testsTaken: increment(1),
+          averageAccuracy: testResult.accuracy, // This should be calculated as running average
+        },
+        lastActive: new Date()
+      }, { merge: true });
 
-    // Store detailed test result
-    const testRef = doc(db, 'users', userId, 'tests', testResult.id);
-    await setDoc(testRef, { ...testResult });
+      // Store detailed test result
+      const testRef = doc(db, 'users', userId, 'tests', testResult.id);
+      await setDoc(testRef, { ...testResult });
+      
+    } catch (error) {
+      console.error('Error recording test result:', error);
+    }
   }
 
   static async getWordsForReview(_userId: string): Promise<string[]> {
