@@ -59,24 +59,29 @@ const MainApp: React.FC = () => {
     }
   }, [currentWord, user, refreshProfile]);
   
-  const shuffleWords = () => {
+  const shuffleWords = useCallback(() => {
     setShuffledWords(prevWords => [...prevWords].sort(() => Math.random() - 0.5));
     setCurrentIndex(0);
     setShowResult(false);
     setIsCorrect(null);
-  };
+  }, []);
+
+  const closeQuickTest = useCallback(() => setShowQuickTest(false), []);
+  const closeAuth = useCallback(() => setShowAuth(false), []);
+  const openAuth = useCallback(() => setShowAuth(true), []);
+  const openQuickTest = useCallback(() => setShowQuickTest(true), []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
       <div className="flex flex-col min-h-screen">
-        {showQuickTest && <QuickTest onClose={() => setShowQuickTest(false)} />}
+        {showQuickTest && <QuickTest onClose={closeQuickTest} />}
         {showAuth && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
             <div className="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-white">{uiText.account}</h2>
                 <button
-                  onClick={() => setShowAuth(false)}
+                  onClick={closeAuth}
                   className="text-gray-400 hover:text-white"
                 >
                   ✕
@@ -91,14 +96,14 @@ const MainApp: React.FC = () => {
         {/* Top Bar with Auth and Test Buttons */}
         <div className="flex justify-between items-center mb-4 sm:mb-6">
           <button
-            onClick={() => setShowAuth(true)}
+            onClick={openAuth}
             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-sm sm:px-4 sm:text-base rounded transition-colors"
           >
             {user ? uiText.profileButton : uiText.signInButton}
           </button>
           
           <button
-            onClick={() => setShowQuickTest(true)}
+            onClick={openQuickTest}
             className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-sm sm:px-4 sm:text-base rounded transition-colors"
           >
             {uiText.quickTestButton}
