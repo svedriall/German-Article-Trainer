@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Word, Language } from '../types';
 import SpeakerIcon from './SpeakerIcon';

@@ -1,4 +1,3 @@
-
 export type Article = 'der' | 'die' | 'das';
 export type Language = 'en' | 'tr';
 export type InputMode = 'select' | 'write';

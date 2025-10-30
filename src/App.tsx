@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
 import { wordList } from './services/wordlist';
 import { Word, Language, InputMode, Article } from './types';

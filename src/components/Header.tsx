@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Language, InputMode } from '../types';
 import { translations } from '../services/translations';
