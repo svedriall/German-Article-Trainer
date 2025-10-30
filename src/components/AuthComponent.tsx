@@ -32,47 +32,29 @@ const AuthComponent: React.FC = () => {
 
   if (user && profile) {
     return (
-      <div className="bg-gray-800 p-6 rounded-lg">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-gray-800 p-4 rounded-lg">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-              {profile.displayName[0]?.toUpperCase()}
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+              {profile.displayName && profile.displayName !== 'Anonymous' 
+                ? profile.displayName[0]?.toUpperCase()
+                : user.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <div>
-              <h3 className="text-white font-semibold">{profile.displayName}</h3>
-              <p className="text-gray-400 text-sm">{profile.email}</p>
+              <h3 className="text-white font-medium text-sm">
+                {profile.displayName && profile.displayName !== 'Anonymous' 
+                  ? profile.displayName 
+                  : user.displayName || user.email?.split('@')[0] || 'User'}
+              </h3>
+              <p className="text-gray-400 text-xs">{profile.email}</p>
             </div>
           </div>
           <button
             onClick={logout}
-            className="text-red-400 hover:text-red-300 text-sm"
+            className="text-red-400 hover:text-red-300 text-sm px-3 py-1 rounded border border-red-400 hover:border-red-300 transition-colors"
           >
             Logout
           </button>
-        </div>
-
-        {/* User Stats */}
-        <div className="grid grid-cols-2 gap-4 text-center">
-          <div className="bg-gray-700 p-3 rounded">
-            <div className="text-2xl font-bold text-green-400">{profile.stats.correctAnswers}</div>
-            <div className="text-xs text-gray-400">Correct</div>
-          </div>
-          <div className="bg-gray-700 p-3 rounded">
-            <div className="text-2xl font-bold text-blue-400">{profile.stats.streak}</div>
-            <div className="text-xs text-gray-400">Current Streak</div>
-          </div>
-          <div className="bg-gray-700 p-3 rounded">
-            <div className="text-2xl font-bold text-purple-400">{profile.stats.testsTaken}</div>
-            <div className="text-xs text-gray-400">Tests Taken</div>
-          </div>
-          <div className="bg-gray-700 p-3 rounded">
-            <div className="text-2xl font-bold text-yellow-400">
-              {profile.stats.totalWords > 0 
-                ? Math.round((profile.stats.correctAnswers / profile.stats.totalWords) * 100)
-                : 0}%
-            </div>
-            <div className="text-xs text-gray-400">Accuracy</div>
-          </div>
         </div>
       </div>
     );

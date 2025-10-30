@@ -35,6 +35,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string, displayName: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const newProfile: UserProfile = {
           uid,
           email: user?.email || '',
-          displayName: user?.displayName || 'Anonymous',
+          displayName: user?.displayName || user?.email?.split('@')[0] || 'User',
           createdAt: new Date(),
           lastActive: new Date(),
           settings: {
@@ -143,6 +144,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(updatedProfile);
   };
 
+  const refreshProfile = async () => {
+    if (!user || !db) return;
+    
+    try {
+      const docRef = doc(db, 'users', user.uid);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        setProfile(docSnap.data() as UserProfile);
+      }
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+    }
+  };
+
   const value: AuthContextType = {
     user,
     profile,
@@ -151,7 +167,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithEmail,
     signUpWithEmail,
     logout,
-    updateUserProfile
+    updateUserProfile,
+    refreshProfile
   };
 
   return (

@@ -15,7 +15,7 @@ interface TestQuestion {
 }
 
 const QuickTest: React.FC<QuickTestProps> = ({ onClose }) => {
-  const { user, updateUserProfile } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [questions, setQuestions] = useState<TestQuestion[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState('');
@@ -101,17 +101,8 @@ const QuickTest: React.FC<QuickTestProps> = ({ onClose }) => {
 
       await ProgressService.recordTestResult(user.uid, testResult);
       
-      // Update streak
-      if (user) {
-        const newStreak = answers.every(Boolean) ? (user as any).stats?.streak + 1 : 0;
-        await updateUserProfile({
-          stats: {
-            ...((user as any).stats || {}),
-            streak: newStreak,
-            longestStreak: Math.max(newStreak, (user as any).stats?.longestStreak || 0)
-          }
-        } as any);
-      }
+      // Refresh profile to get updated stats
+      await refreshProfile();
     }
   };
 
@@ -166,8 +157,8 @@ const QuickTest: React.FC<QuickTestProps> = ({ onClose }) => {
   const currentQ = questions[currentQuestion];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
-      <div className="bg-gray-800 p-8 rounded-lg max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-gray-800 p-8 rounded-lg max-w-md w-full mx-4 my-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="text-white text-lg">
             Question {currentQuestion + 1} of {questions.length}

@@ -7,12 +7,13 @@ import ArticleSelector from './components/ArticleSelector';
 import SentenceDisplay from './components/SentenceDisplay';
 import AuthComponent from './components/AuthComponent';
 import QuickTest from './components/QuickTest';
+import UserStatsBar from './components/UserStatsBar';
 import { translations } from './services/translations';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProgressService } from './services/progressService';
 
 const MainApp: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('en');
   const [inputMode, setInputMode] = useState<InputMode>('select');
@@ -45,6 +46,8 @@ const MainApp: React.FC = () => {
     // Record progress if user is logged in
     if (user) {
       await ProgressService.recordAnswer(user.uid, currentWord.word, isCorrectAnswer);
+      // Refresh profile to get updated stats
+      setTimeout(() => refreshProfile(), 100); // Small delay to ensure DB is updated
     }
   }, [currentWord, user]);
   
@@ -56,24 +59,25 @@ const MainApp: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-center p-4 font-sans">
-      {/* Quick Test Modal */}
-      {showQuickTest && <QuickTest onClose={() => setShowQuickTest(false)} />}
-      
-      {/* Auth Modal */}
-      {showAuth && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="relative">
-            <button
-              onClick={() => setShowAuth(false)}
-              className="absolute -top-4 -right-4 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center"
-            >
-              ×
-            </button>
-            <AuthComponent />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white pb-20">
+      <div className="container mx-auto p-4 relative">
+        {showQuickTest && <QuickTest onClose={() => setShowQuickTest(false)} />}
+        {showAuth && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
+            <div className="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-white">Account</h2>
+                <button
+                  onClick={() => setShowAuth(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+              <AuthComponent />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       <div className="w-full max-w-2xl mx-auto">
         {/* Top Bar with Auth and Test Buttons */}
@@ -135,6 +139,7 @@ const MainApp: React.FC = () => {
           <p>{uiText.footerText}</p>
         </footer>
       </div>
+      <UserStatsBar />
     </div>
   );
 };
