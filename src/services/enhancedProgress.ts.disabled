@@ -7,14 +7,10 @@ import {
   collection, 
   query, 
   where, 
-  orderBy, 
-  limit, 
-  getDocs, 
-  serverTimestamp,
-  writeBatch 
+  getDocs 
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { WordPerformance, LearningSession, LearningAnalytics, SpacedRepetitionSystem } from './spacedRepetition';
+import { WordPerformance, LearningAnalytics, SpacedRepetitionSystem } from './spacedRepetition';
 import { wordList } from './wordlist';
 
 export class EnhancedProgressService {
@@ -25,9 +21,13 @@ export class EnhancedProgressService {
     userId: string, 
     wordId: string, 
     isCorrect: boolean, 
-    responseTime: number,
-    sessionId: string
+    responseTime: number
   ): Promise<void> {
+    if (!db) {
+      console.warn('Firebase not configured, skipping analytics');
+      return;
+    }
+    
     try {
       const performanceRef = doc(db, 'wordPerformance', `${userId}_${wordId}`);
       const performanceDoc = await getDoc(performanceRef);

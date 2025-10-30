@@ -1,39 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { translations } from '../services/translations';
-import { EnhancedProgressService } from '../services/enhancedProgress';
-import { WordPerformance, LearningAnalytics } from '../services/spacedRepetition';
+import { SimpleAnalyticsService, SimpleAnalytics } from '../services/simpleAnalytics';
 
 interface AnalyticsDashboardProps {
   onClose: () => void;
 }
 
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onClose }) => {
-  const { user } = useAuth();
   const { language } = useLanguage();
   
-  const [analytics, setAnalytics] = useState<LearningAnalytics | null>(null);
-  const [reviewSchedule, setReviewSchedule] = useState<{
-    today: WordPerformance[];
-    tomorrow: WordPerformance[];
-    thisWeek: WordPerformance[];
-  }>({ today: [], tomorrow: [], thisWeek: [] });
+  const [analytics, setAnalytics] = useState<SimpleAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadAnalytics = async () => {
-      if (!user) return;
-      
+    const loadAnalytics = () => {
       try {
         setLoading(true);
-        const [analyticsData, scheduleData] = await Promise.all([
-          EnhancedProgressService.getLearningAnalytics(user.uid),
-          EnhancedProgressService.getReviewSchedule(user.uid)
-        ]);
-        
+        const analyticsData = SimpleAnalyticsService.getAnalytics();
         setAnalytics(analyticsData);
-        setReviewSchedule(scheduleData);
       } catch (error) {
         console.error('Error loading analytics:', error);
       } finally {
@@ -42,7 +26,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onClose }) => {
     };
 
     loadAnalytics();
-  }, [user]);
+  }, []);
 
   if (loading) {
     return (
@@ -101,10 +85,10 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onClose }) => {
                     <p className="text-sm opacity-90">
                       {language === 'tr' ? 'Güncel Seri' : 'Current Streak'}
                     </p>
-                    <p className="text-2xl font-bold">{analytics.currentStreak} days</p>
+                    <p className="text-2xl font-bold">{analytics.streak}</p>
                   </div>
                   <div className="text-3xl">
-                    {getStreakEmoji(analytics.currentStreak)}
+                    {getStreakEmoji(analytics.streak)}
                   </div>
                 </div>
               </div>
@@ -116,7 +100,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onClose }) => {
                     <p className="text-sm opacity-90">
                       {language === 'tr' ? 'Öğrenilen Kelimeler' : 'Words Learned'}
                     </p>
-                    <p className="text-2xl font-bold">{analytics.totalWordsLearned}</p>
+                    <p className="text-2xl font-bold">{analytics.wordsLearned}</p>
                   </div>
                   <div className="text-3xl">🎯</div>
                 </div>
@@ -129,106 +113,57 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onClose }) => {
                     <p className="text-sm opacity-90">
                       {language === 'tr' ? 'Genel Doğruluk' : 'Overall Accuracy'}
                     </p>
-                    <p className={`text-2xl font-bold ${getAccuracyColor(analytics.overallAccuracy)}`}>
-                      {Math.round(analytics.overallAccuracy)}%
+                    <p className={`text-2xl font-bold ${getAccuracyColor(analytics.accuracy)}`}>
+                      {Math.round(analytics.accuracy)}%
                     </p>
                   </div>
                   <div className="text-3xl">🎪</div>
                 </div>
               </div>
 
-              {/* Review Today */}
+              {/* Total Attempts */}
               <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg p-4 text-white">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm opacity-90">
-                      {language === 'tr' ? 'Bugün Tekrar' : 'Review Today'}
+                      {language === 'tr' ? 'Toplam Deneme' : 'Total Attempts'}
                     </p>
-                    <p className="text-2xl font-bold">{reviewSchedule.today.length}</p>
+                    <p className="text-2xl font-bold">{analytics.totalAttempts}</p>
                   </div>
                   <div className="text-3xl">⏰</div>
                 </div>
               </div>
             </div>
 
-            {/* Article Mastery */}
+            {/* Simple Stats */}
             <div className="bg-gray-700 rounded-lg p-6 mb-6">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                🎯 {language === 'tr' ? 'Artikel Ustalığı' : 'Article Mastery'}
+                📊 {language === 'tr' ? 'İstatistikler' : 'Statistics'}
               </h3>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="text-3xl mb-2">🔵</div>
-                  <div className="text-lg font-bold text-blue-400">DER</div>
-                  <div className={`text-xl font-bold ${getAccuracyColor(analytics.articleAccuracy.der)}`}>
-                    {Math.round(analytics.articleAccuracy.der)}%
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <div className="text-4xl mb-2">🎯</div>
+                  <div className="text-lg font-bold text-white">
+                    {language === 'tr' ? 'Doğru Cevaplar' : 'Correct Answers'}
                   </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl mb-2">🔴</div>
-                  <div className="text-lg font-bold text-pink-400">DIE</div>
-                  <div className={`text-xl font-bold ${getAccuracyColor(analytics.articleAccuracy.die)}`}>
-                    {Math.round(analytics.articleAccuracy.die)}%
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl mb-2">🟡</div>
-                  <div className="text-lg font-bold text-yellow-400">DAS</div>
-                  <div className={`text-xl font-bold ${getAccuracyColor(analytics.articleAccuracy.das)}`}>
-                    {Math.round(analytics.articleAccuracy.das)}%
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Review Schedule */}
-            <div className="bg-gray-700 rounded-lg p-6 mb-6">
-              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                📅 {language === 'tr' ? 'Tekrar Programı' : 'Review Schedule'}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-600 rounded p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">📅</span>
-                    <span className="font-bold text-white">
-                      {language === 'tr' ? 'Bugün' : 'Today'}
-                    </span>
-                  </div>
-                  <div className="text-2xl font-bold text-yellow-400">
-                    {reviewSchedule.today.length}
+                  <div className="text-3xl font-bold text-green-400">
+                    {analytics.correctAnswers}
                   </div>
                   <div className="text-sm text-gray-300">
-                    {language === 'tr' ? 'kelime tekrarı' : 'words to review'}
+                    {language === 'tr' ? `${analytics.totalAttempts} deneme` : `out of ${analytics.totalAttempts} attempts`}
                   </div>
                 </div>
                 
-                <div className="bg-gray-600 rounded p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">📆</span>
-                    <span className="font-bold text-white">
-                      {language === 'tr' ? 'Yarın' : 'Tomorrow'}
-                    </span>
+                <div>
+                  <div className="text-4xl mb-2">🔥</div>
+                  <div className="text-lg font-bold text-white">
+                    {language === 'tr' ? 'En İyi Seri' : 'Current Streak'}
                   </div>
-                  <div className="text-2xl font-bold text-blue-400">
-                    {reviewSchedule.tomorrow.length}
+                  <div className="text-3xl font-bold text-orange-400">
+                    {analytics.streak}
                   </div>
                   <div className="text-sm text-gray-300">
-                    {language === 'tr' ? 'kelime tekrarı' : 'words to review'}
-                  </div>
-                </div>
-                
-                <div className="bg-gray-600 rounded p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">🗓️</span>
-                    <span className="font-bold text-white">
-                      {language === 'tr' ? 'Bu Hafta' : 'This Week'}
-                    </span>
-                  </div>
-                  <div className="text-2xl font-bold text-green-400">
-                    {reviewSchedule.thisWeek.length}
-                  </div>
-                  <div className="text-sm text-gray-300">
-                    {language === 'tr' ? 'kelime tekrarı' : 'words to review'}
+                    {language === 'tr' ? 'ardışık doğru' : 'consecutive correct'}
                   </div>
                 </div>
               </div>
