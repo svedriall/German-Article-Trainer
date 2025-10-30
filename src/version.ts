@@ -1,12 +1,12 @@
 // Version information for German Article Trainer
-// Generated at build time: 2025-10-30T15:53:33.283Z
-// Git commit: a83e674 (main)
-// Commit date: 2025-10-30 16:32:49 +0100
-export const VERSION = '1.2.0-a83e674';
+// Generated at build time: 2025-10-30T15:57:26.110Z
+// Git commit: 8a3cb55 (main)
+// Commit date: 2025-10-30 16:53:55 +0100
+export const VERSION = '1.2.0-8a3cb55';
 export const BASE_VERSION = '1.2.0';
-export const BUILD_DATE = '2025-10-30T15:53:33.283Z';
-export const GIT_COMMIT_HASH = 'a83e674';
-export const GIT_COMMIT_DATE = '2025-10-30 16:32:49 +0100';
+export const BUILD_DATE = '2025-10-30T15:57:26.110Z';
+export const GIT_COMMIT_HASH = '8a3cb55';
+export const GIT_COMMIT_DATE = '2025-10-30 16:53:55 +0100';
 export const GIT_BRANCH = 'main';
 export const FEATURES = [
   'Enhanced Authentication with Better Error Handling',

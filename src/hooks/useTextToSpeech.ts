@@ -36,8 +36,19 @@ const findGermanVoice = () => {
         } : 'No German voice found',
         availableGermanVoices: voices
           .filter(voice => voice.lang.startsWith('de'))
-          .map(voice => ({ name: voice.name, lang: voice.lang }))
+          .map(voice => ({ name: voice.name, lang: voice.lang })),
+        allVoices: voices.map(voice => `${voice.name} (${voice.lang})`)
       });
+      
+      // If no German voices found, show user-friendly message
+      if (!germanVoice && voices.length > 0) {
+        console.warn('⚠️ No German TTS voices available on this system.');
+        console.info('💡 To get German pronunciation:');
+        console.info('   • Windows: Install German language pack in Settings > Time & Language > Language');
+        console.info('   • Chrome: Visit chrome://settings/languages and add German');
+        console.info('   • Edge: Visit edge://settings/languages and add German');
+        console.info('   • Using de-DE language setting as fallback');
+      }
     }
   }
 };
@@ -84,8 +95,19 @@ export const useTextToSpeech = () => {
       utterance.voice = germanVoice;
       console.log(`🗣️ Using German voice: ${germanVoice.name} (${germanVoice.lang})`);
     } else {
-      console.warn("🚨 German voice not found. Using browser default with de-DE language.");
-      console.log("Available voices:", window.speechSynthesis.getVoices().map(v => `${v.name} (${v.lang})`));
+      // Try to find any voice that might work better with German
+      const allVoices = window.speechSynthesis.getVoices();
+      const englishVoice = allVoices.find(voice => 
+        voice.lang.startsWith('en') && !voice.name.toLowerCase().includes('male')
+      );
+      
+      if (englishVoice) {
+        // Use a female English voice as it often pronounces German better
+        utterance.voice = englishVoice;
+        console.log(`🔄 Using fallback voice for German: ${englishVoice.name} (${englishVoice.lang})`);
+      }
+      
+      console.warn("🚨 No German voice available. Using language setting de-DE with fallback voice.");
     }
     
     // Speech settings optimized for German
