@@ -11,6 +11,7 @@ import UserStatsBar from './components/UserStatsBar';
 import { translations } from './services/translations';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProgressService } from './services/progressService';
+import { VERSION } from './version';
 
 const MainApp: React.FC = () => {
   const { user, refreshProfile } = useAuth();
@@ -135,8 +136,9 @@ const MainApp: React.FC = () => {
             </>
           )}
         </main>
-         <footer className="text-center mt-8 text-gray-500 text-sm">
+         <footer className="text-center mt-8 text-gray-500 text-sm space-y-1">
           <p>{uiText.footerText}</p>
+          <p className="text-xs opacity-60">v{VERSION} • Enhanced Authentication & Real-time Stats</p>
         </footer>
       </div>
       <UserStatsBar />
