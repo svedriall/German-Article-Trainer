@@ -20,7 +20,13 @@ const AuthComponent: React.FC = () => {
         await signUpWithEmail(email, password, displayName);
       }
     } catch (err: any) {
-      setError(err.message);
+      let errorMessage = err.message;
+      
+      if (errorMessage.includes('Firebase not configured')) {
+        errorMessage = '⚙️ Firebase not configured. Please add your Firebase credentials to the environment variables and restart the development server.';
+      }
+      
+      setError(errorMessage);
     }
   };
 

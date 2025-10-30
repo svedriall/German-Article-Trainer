@@ -113,24 +113,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInWithGoogle = async () => {
-    if (!auth) throw new Error('Firebase not configured');
+    if (!auth || !isFirebaseEnabled) throw new Error('Firebase not configured - please check your environment variables');
     const provider = new GoogleAuthProvider();
     await signInWithPopup(auth, provider);
   };
 
   const signInWithEmail = async (email: string, password: string) => {
-    if (!auth) throw new Error('Firebase not configured');
+    if (!auth || !isFirebaseEnabled) throw new Error('Firebase not configured - please check your environment variables');
     await signInWithEmailAndPassword(auth, email, password);
   };
 
   const signUpWithEmail = async (email: string, password: string, _displayName: string) => {
-    if (!auth) throw new Error('Firebase not configured');
+    if (!auth || !isFirebaseEnabled) throw new Error('Firebase not configured - please check your environment variables');
     await createUserWithEmailAndPassword(auth, email, password);
     // Profile will be created in the auth state change listener
   };
 
   const logout = async () => {
-    if (!auth) throw new Error('Firebase not configured');
+    if (!auth || !isFirebaseEnabled) throw new Error('Firebase not configured - please check your environment variables');
     await signOut(auth);
   };
 
