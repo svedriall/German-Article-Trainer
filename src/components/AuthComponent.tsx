@@ -49,6 +49,8 @@ const AuthComponent: React.FC = () => {
         errorMessage = '❌ Password should be at least 6 characters long.';
       } else if (errorMessage.includes('invalid-email')) {
         errorMessage = '❌ Please enter a valid email address.';
+      } else if (errorMessage.includes('invalid-credential')) {
+        errorMessage = '❌ Invalid email or password. Please check your credentials and try again.';
       } else if (errorMessage.includes('too-many-requests')) {
         errorMessage = '⏳ Too many failed attempts. Please wait a few minutes and try again.';
       } else {
@@ -103,6 +105,10 @@ const AuthComponent: React.FC = () => {
       >
         Continue with Google
       </button>
+      
+      <div className="text-xs text-yellow-400 mb-2 p-2 bg-yellow-900/20 rounded">
+        ℹ️ First time? Use "Sign Up" to create an account, then "Sign In" to access it.
+      </div>
 
       <div className="text-center text-gray-400 mb-4">or</div>
 

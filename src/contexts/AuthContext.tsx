@@ -121,7 +121,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithEmail = async (email: string, password: string) => {
     if (!auth || !isFirebaseEnabled) throw new Error('Firebase not configured - please check your environment variables');
-    await signInWithEmailAndPassword(auth, email, password);
+    
+    console.log('🔐 Attempting email/password sign-in...');
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log('✅ Email/password sign-in successful');
+    } catch (error: any) {
+      console.error('❌ Email/password sign-in failed:', error.code, error.message);
+      throw error;
+    }
   };
 
   const signUpWithEmail = async (email: string, password: string, _displayName: string) => {

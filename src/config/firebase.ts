@@ -23,7 +23,8 @@ console.log('🔥 Firebase Status:', {
   version: VERSION,
   isConfigured: isFirebaseConfigured,
   hasRequiredEnvVars: !!(apiKey && authDomain && projectId),
-  environment: env.NODE_ENV || 'development'
+  environment: env.NODE_ENV || 'development',
+  projectId: projectId ? projectId.substring(0, 8) + '...' : 'not set'
 });
 
 let app: FirebaseApp | null = null;
