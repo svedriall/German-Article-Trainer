@@ -13,6 +13,20 @@ const AuthComponent: React.FC = () => {
     e.preventDefault();
     setError('');
 
+    // Basic validation
+    if (!email.trim()) {
+      setError('❌ Please enter your email address.');
+      return;
+    }
+    if (!password.trim()) {
+      setError('❌ Please enter your password.');
+      return;
+    }
+    if (!isLogin && !displayName.trim()) {
+      setError('❌ Please enter your display name.');
+      return;
+    }
+
     try {
       if (isLogin) {
         await signInWithEmail(email, password);
@@ -22,11 +36,28 @@ const AuthComponent: React.FC = () => {
     } catch (err: any) {
       let errorMessage = err.message;
       
+      // Provide user-friendly error messages
       if (errorMessage.includes('Firebase not configured')) {
         errorMessage = '⚙️ Firebase not configured. Please add your Firebase credentials to the environment variables and restart the development server.';
+      } else if (errorMessage.includes('user-not-found')) {
+        errorMessage = '❌ No account found with this email address. Please sign up first.';
+      } else if (errorMessage.includes('wrong-password')) {
+        errorMessage = '❌ Incorrect password. Please try again.';
+      } else if (errorMessage.includes('email-already-in-use')) {
+        errorMessage = '❌ An account with this email already exists. Please sign in instead.';
+      } else if (errorMessage.includes('weak-password')) {
+        errorMessage = '❌ Password should be at least 6 characters long.';
+      } else if (errorMessage.includes('invalid-email')) {
+        errorMessage = '❌ Please enter a valid email address.';
+      } else if (errorMessage.includes('too-many-requests')) {
+        errorMessage = '⏳ Too many failed attempts. Please wait a few minutes and try again.';
+      } else {
+        // Show the raw error for debugging
+        errorMessage = `❌ Authentication error: ${errorMessage}`;
       }
       
       setError(errorMessage);
+      console.error('Authentication error details:', err);
     }
   };
 
