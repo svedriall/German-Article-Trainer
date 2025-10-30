@@ -1,7 +1,13 @@
 // Version information for German Article Trainer
-// Generated at build time: 2025-10-30T14:33:09.803Z
-export const VERSION = '1.2.0';
-export const BUILD_DATE = '2025-10-30T14:33:09.803Z';
+// Generated at build time: 2025-10-30T14:50:47.101Z
+// Git commit: 3cb34a0 (main)
+// Commit date: 2025-10-30 15:46:00 +0100
+export const VERSION = '1.2.0-3cb34a0';
+export const BASE_VERSION = '1.2.0';
+export const BUILD_DATE = '2025-10-30T14:50:47.101Z';
+export const GIT_COMMIT_HASH = '3cb34a0';
+export const GIT_COMMIT_DATE = '2025-10-30 15:46:00 +0100';
+export const GIT_BRANCH = 'main';
 export const FEATURES = [
   'Enhanced Authentication with Better Error Handling',
   'Real-time User Stats Display',
@@ -10,12 +16,17 @@ export const FEATURES = [
   'User Profile Management',
   'Progress Tracking & Analytics',
   'Persistent Language Selection (Turkish + English)',
-  'Mobile Responsive Design'
+  'Mobile Responsive Design',
+  'RADICAL FIX: Removed useCallback functions to resolve React #310'
 ];
 
 export const getVersionInfo = () => ({
   version: VERSION,
+  baseVersion: BASE_VERSION,
   buildDate: BUILD_DATE,
+  gitCommitHash: GIT_COMMIT_HASH,
+  gitCommitDate: GIT_COMMIT_DATE,
+  gitBranch: GIT_BRANCH,
   features: FEATURES
 });
 
@@ -23,6 +34,8 @@ export const getVersionInfo = () => ({
 console.log(`
 🎯 German Article Trainer v${VERSION}
 📦 Build: ${BUILD_DATE}
+🔧 Git: ${GIT_COMMIT_HASH} on ${GIT_BRANCH}
+📅 Commit: ${GIT_COMMIT_DATE}
 ✨ Latest Features:
 ${FEATURES.map(f => `  • ${f}`).join('\n')}
 `);

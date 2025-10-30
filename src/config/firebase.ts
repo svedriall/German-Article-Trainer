@@ -3,7 +3,7 @@ import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getMessaging, isSupported, Messaging } from 'firebase/messaging';
-import { VERSION } from '../version';
+import { VERSION, GIT_COMMIT_HASH, BUILD_DATE } from '../version';
 
 // Get environment variables from Vite (more robust approach)
 const env = (import.meta as any).env || {};
@@ -21,6 +21,8 @@ const isFirebaseConfigured = apiKey && apiKey !== 'demo-key' && apiKey.startsWit
 // Display Firebase status with version info
 console.log('🔥 Firebase Status:', {
   version: VERSION,
+  gitHash: GIT_COMMIT_HASH,
+  buildDate: BUILD_DATE,
   isConfigured: isFirebaseConfigured,
   hasRequiredEnvVars: !!(apiKey && authDomain && projectId),
   environment: env.NODE_ENV || 'development',
