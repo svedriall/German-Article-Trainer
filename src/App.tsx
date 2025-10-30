@@ -52,12 +52,12 @@ const MainApp: React.FC = () => {
     }
 
     // Record progress if user is logged in
-    if (user) {
+    if (user && refreshProfile) {
       await ProgressService.recordAnswer(user.uid, currentWord.word, isCorrectAnswer);
       // Refresh profile to get updated stats
       setTimeout(() => refreshProfile(), 100); // Small delay to ensure DB is updated
     }
-  }, [currentWord, user, refreshProfile]);
+  }, [currentWord, user]); // Temporarily removed refreshProfile to debug React error
   
   const shuffleWords = useCallback(() => {
     setShuffledWords(prevWords => [...prevWords].sort(() => Math.random() - 0.5));
