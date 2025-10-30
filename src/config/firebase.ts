@@ -4,19 +4,22 @@ import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getMessaging, isSupported, Messaging } from 'firebase/messaging';
 
-// Get environment variables (works in both dev and production)
-const getEnvVar = (key: string): string | undefined => {
-  if (typeof window !== 'undefined') {
-    // Client-side - check if variables were injected during build
-    return (window as any).__FIREBASE_CONFIG__?.[key];
-  }
-  // Build time - use Vite's import.meta.env
-  return (import.meta as any).env?.[key];
-};
+// Get environment variables from Vite
+const apiKey = (import.meta as any).env?.VITE_FIREBASE_API_KEY;
+const authDomain = (import.meta as any).env?.VITE_FIREBASE_AUTH_DOMAIN;
+const projectId = (import.meta as any).env?.VITE_FIREBASE_PROJECT_ID;
+const storageBucket = (import.meta as any).env?.VITE_FIREBASE_STORAGE_BUCKET;
+const messagingSenderId = (import.meta as any).env?.VITE_FIREBASE_MESSAGING_SENDER_ID;
+const appId = (import.meta as any).env?.VITE_FIREBASE_APP_ID;
 
-// Check if Firebase is configured
-const apiKey = getEnvVar('VITE_FIREBASE_API_KEY');
+// Check if Firebase is configured (API key should start with AIza for real Firebase projects)
 const isFirebaseConfigured = apiKey && apiKey !== 'demo-key' && apiKey.startsWith('AIza');
+
+console.log('Firebase configuration check:', {
+  hasApiKey: !!apiKey,
+  apiKeyStart: apiKey?.substring(0, 10),
+  isConfigured: isFirebaseConfigured
+});
 
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
@@ -26,12 +29,12 @@ let messaging: Messaging | null = null;
 if (isFirebaseConfigured) {
   // Firebase is properly configured
   const firebaseConfig = {
-    apiKey: getEnvVar('VITE_FIREBASE_API_KEY')!,
-    authDomain: getEnvVar('VITE_FIREBASE_AUTH_DOMAIN')!,
-    projectId: getEnvVar('VITE_FIREBASE_PROJECT_ID')!,
-    storageBucket: getEnvVar('VITE_FIREBASE_STORAGE_BUCKET')!,
-    messagingSenderId: getEnvVar('VITE_FIREBASE_MESSAGING_SENDER_ID')!,
-    appId: getEnvVar('VITE_FIREBASE_APP_ID')!
+    apiKey: apiKey!,
+    authDomain: authDomain!,
+    projectId: projectId!,
+    storageBucket: storageBucket!,
+    messagingSenderId: messagingSenderId!,
+    appId: appId!
   };
 
   // Initialize Firebase
