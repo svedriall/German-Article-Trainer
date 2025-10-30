@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db, isFirebaseEnabled } from '../config/firebase';
@@ -152,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(updatedProfile);
   };
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (!user || !db) return;
     
     try {
@@ -165,7 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error refreshing profile:', error);
     }
-  };
+  }, [user, db]);
 
   const value: AuthContextType = {
     user,
