@@ -136,12 +136,13 @@ const MainApp: React.FC = () => {
             </>
           )}
         </main>
-         <footer className="text-center mt-8 text-gray-500 text-sm space-y-1">
+        <footer className="text-center mt-8 text-gray-500 text-sm space-y-1">
           <p>{uiText.footerText}</p>
           <p className="text-xs opacity-60">v{VERSION} • Enhanced Authentication & Real-time Stats</p>
         </footer>
       </div>
       <UserStatsBar />
+      </div>
     </div>
   );
 };
