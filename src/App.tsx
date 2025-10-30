@@ -5,15 +5,22 @@ import Header from './components/Header';
 import WordDisplay from './components/WordDisplay';
 import ArticleSelector from './components/ArticleSelector';
 import SentenceDisplay from './components/SentenceDisplay';
+import AuthComponent from './components/AuthComponent';
+import QuickTest from './components/QuickTest';
 import { translations } from './services/translations';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ProgressService } from './services/progressService';
 
-const App: React.FC = () => {
+const MainApp: React.FC = () => {
+  const { user } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('en');
   const [inputMode, setInputMode] = useState<InputMode>('select');
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [shuffledWords, setShuffledWords] = useState<Word[]>(() => [...wordList].sort(() => Math.random() - 0.5));
+  const [showQuickTest, setShowQuickTest] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
 
   const currentWord = useMemo(() => shuffledWords[currentIndex], [shuffledWords, currentIndex]);
   const uiText = useMemo(() => translations[selectedLanguage], [selectedLanguage]);
@@ -24,15 +31,22 @@ const App: React.FC = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % shuffledWords.length);
   }, [shuffledWords.length]);
 
-  const handleGuess = useCallback((guess: Article) => {
-    if (guess.toLowerCase() === currentWord.article) {
+  const handleGuess = useCallback(async (guess: Article) => {
+    const isCorrectAnswer = guess.toLowerCase() === currentWord.article;
+    
+    if (isCorrectAnswer) {
       setIsCorrect(true);
       setShowResult(true);
     } else {
       setIsCorrect(false);
       setTimeout(() => setIsCorrect(null), 500); // Reset incorrect feedback
     }
-  }, [currentWord]);
+
+    // Record progress if user is logged in
+    if (user) {
+      await ProgressService.recordAnswer(user.uid, currentWord.word, isCorrectAnswer);
+    }
+  }, [currentWord, user]);
   
   const shuffleWords = () => {
     setShuffledWords(prevWords => [...prevWords].sort(() => Math.random() - 0.5));
@@ -43,7 +57,42 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-center p-4 font-sans">
+      {/* Quick Test Modal */}
+      {showQuickTest && <QuickTest onClose={() => setShowQuickTest(false)} />}
+      
+      {/* Auth Modal */}
+      {showAuth && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="relative">
+            <button
+              onClick={() => setShowAuth(false)}
+              className="absolute -top-4 -right-4 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center"
+            >
+              ×
+            </button>
+            <AuthComponent />
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-2xl mx-auto">
+        {/* Top Bar with Auth and Test Buttons */}
+        <div className="flex justify-between items-center mb-6">
+          <button
+            onClick={() => setShowAuth(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
+          >
+            {user ? '👤 Profile' : '🔒 Sign In'}
+          </button>
+          
+          <button
+            onClick={() => setShowQuickTest(true)}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition-colors"
+          >
+            ⚡ Quick Test
+          </button>
+        </div>
+
         <Header
           selectedLanguage={selectedLanguage}
           onLanguageChange={setSelectedLanguage}
@@ -87,6 +136,15 @@ const App: React.FC = () => {
         </footer>
       </div>
     </div>
+  );
+};
+
+// Main App wrapper with AuthProvider
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 };
 

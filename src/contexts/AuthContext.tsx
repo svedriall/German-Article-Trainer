@@ -1,0 +1,151 @@
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { User, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../config/firebase';
+
+interface UserProfile {
+  uid: string;
+  email: string;
+  displayName: string;
+  avatar?: string;
+  createdAt: Date;
+  lastActive: Date;
+  settings: {
+    language: string;
+    notifications: boolean;
+    difficulty: 'beginner' | 'intermediate' | 'advanced';
+  };
+  stats: {
+    totalWords: number;
+    correctAnswers: number;
+    incorrectAnswers: number;
+    streak: number;
+    longestStreak: number;
+    testsTaken: number;
+    averageAccuracy: number;
+  };
+}
+
+interface AuthContextType {
+  user: User | null;
+  profile: UserProfile | null;
+  loading: boolean;
+  signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, displayName: string) => Promise<void>;
+  logout: () => Promise<void>;
+  updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUser(user);
+        await loadUserProfile(user.uid);
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const loadUserProfile = async (uid: string) => {
+    try {
+      const docRef = doc(db, 'users', uid);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        setProfile(docSnap.data() as UserProfile);
+      } else {
+        // Create new user profile
+        const newProfile: UserProfile = {
+          uid,
+          email: user?.email || '',
+          displayName: user?.displayName || 'Anonymous',
+          createdAt: new Date(),
+          lastActive: new Date(),
+          settings: {
+            language: 'en',
+            notifications: true,
+            difficulty: 'beginner'
+          },
+          stats: {
+            totalWords: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            streak: 0,
+            longestStreak: 0,
+            testsTaken: 0,
+            averageAccuracy: 0
+          }
+        };
+        await setDoc(docRef, newProfile);
+        setProfile(newProfile);
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  };
+
+  const signInWithEmail = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
+  };
+
+  const signUpWithEmail = async (email: string, password: string, _displayName: string) => {
+    await createUserWithEmailAndPassword(auth, email, password);
+    // Profile will be created in the auth state change listener
+  };
+
+  const logout = async () => {
+    await signOut(auth);
+  };
+
+  const updateUserProfile = async (updates: Partial<UserProfile>) => {
+    if (!user || !profile) return;
+    
+    const updatedProfile = { ...profile, ...updates, lastActive: new Date() };
+    const docRef = doc(db, 'users', user.uid);
+    await setDoc(docRef, updatedProfile);
+    setProfile(updatedProfile);
+  };
+
+  const value: AuthContextType = {
+    user,
+    profile,
+    loading,
+    signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
+    logout,
+    updateUserProfile
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
