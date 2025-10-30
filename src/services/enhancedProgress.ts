@@ -1,0 +1,354 @@
+// Enhanced Progress Service with Advanced Analytics
+import { 
+  doc, 
+  setDoc, 
+  getDoc, 
+  updateDoc, 
+  collection, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  getDocs, 
+  serverTimestamp,
+  writeBatch 
+} from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { WordPerformance, LearningSession, LearningAnalytics, SpacedRepetitionSystem } from './spacedRepetition';
+import { wordList } from './wordlist';
+
+export class EnhancedProgressService {
+  /**
+   * Record a word attempt with advanced analytics
+   */
+  static async recordWordAttempt(
+    userId: string, 
+    wordId: string, 
+    isCorrect: boolean, 
+    responseTime: number,
+    sessionId: string
+  ): Promise<void> {
+    try {
+      const performanceRef = doc(db, 'wordPerformance', `${userId}_${wordId}`);
+      const performanceDoc = await getDoc(performanceRef);
+      
+      let performance: WordPerformance;
+      const now = new Date();
+      
+      if (performanceDoc.exists()) {
+        performance = performanceDoc.data() as WordPerformance;
+        
+        // Update performance metrics
+        performance.totalAttempts += 1;
+        if (isCorrect) {
+          performance.correctAttempts += 1;
+          performance.consecutiveCorrect += 1;
+          performance.consecutiveIncorrect = 0;
+          performance.bestStreak = Math.max(performance.bestStreak, performance.consecutiveCorrect);
+        } else {
+          performance.incorrectAttempts += 1;
+          performance.consecutiveIncorrect += 1;
+          performance.consecutiveCorrect = 0;
+        }
+        
+        performance.accuracy = (performance.correctAttempts / performance.totalAttempts) * 100;
+        
+        // Update response time
+        const totalResponseTime = performance.averageResponseTime * (performance.totalAttempts - 1) + responseTime;
+        performance.averageResponseTime = totalResponseTime / performance.totalAttempts;
+        
+        // Calculate SM-2 quality and update spaced repetition
+        const quality = SpacedRepetitionSystem.accuracyToQuality(
+          isCorrect, 
+          responseTime, 
+          performance.averageResponseTime
+        );
+        
+        const srUpdate = SpacedRepetitionSystem.calculateNextReview(
+          quality,
+          performance.easinessFactor,
+          performance.interval,
+          performance.repetitions
+        );
+        
+        performance.easinessFactor = srUpdate.easinessFactor;
+        performance.interval = srUpdate.interval;
+        performance.repetitions = srUpdate.repetitions;
+        
+        // Set next review date
+        const nextReview = new Date();
+        nextReview.setDate(nextReview.getDate() + performance.interval);
+        performance.nextReviewDate = nextReview;
+        performance.lastReviewDate = now;
+        performance.lastAttemptDate = now;
+        
+        // Update learning state and difficulty
+        if (performance.accuracy >= 90 && performance.totalAttempts >= 5) {
+          performance.learningState = 'graduated';
+          performance.difficulty = 'easy';
+        } else if (performance.accuracy >= 70 && performance.totalAttempts >= 3) {
+          performance.learningState = 'learning';
+          performance.difficulty = 'medium';
+        } else if (performance.totalAttempts >= 2) {
+          performance.learningState = 'learning';
+          performance.difficulty = 'hard';
+        } else {
+          performance.learningState = 'new';
+          performance.difficulty = 'medium';
+        }
+        
+      } else {
+        // Create new performance record
+        const word = wordList.find(w => w.word === wordId);
+        if (!word) throw new Error('Word not found');
+        
+        performance = {
+          wordId,
+          word: word.word,
+          article: word.article,
+          totalAttempts: 1,
+          correctAttempts: isCorrect ? 1 : 0,
+          incorrectAttempts: isCorrect ? 0 : 1,
+          accuracy: isCorrect ? 100 : 0,
+          easinessFactor: 2.5,
+          interval: 1,
+          repetitions: isCorrect ? 1 : 0,
+          nextReviewDate: new Date(now.getTime() + (isCorrect ? 24 * 60 * 60 * 1000 : 0)),
+          lastReviewDate: now,
+          learningState: 'new',
+          difficulty: 'medium',
+          firstSeenDate: now,
+          lastAttemptDate: now,
+          averageResponseTime: responseTime,
+          consecutiveCorrect: isCorrect ? 1 : 0,
+          consecutiveIncorrect: isCorrect ? 0 : 1,
+          bestStreak: isCorrect ? 1 : 0
+        };
+      }
+      
+      await setDoc(performanceRef, performance);
+      await this.updateLearningAnalytics(userId, isCorrect, responseTime);
+      
+    } catch (error) {
+      console.error('Error recording word attempt:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get personalized word recommendations for study session
+   */
+  static async getRecommendedWords(
+    userId: string, 
+    sessionType: 'review' | 'new' | 'mixed' = 'mixed',
+    maxWords: number = 20
+  ): Promise<any[]> {
+    try {
+      // Get user's word performance data
+      const performanceQuery = query(
+        collection(db, 'wordPerformance'),
+        where('wordId', '>=', userId),
+        where('wordId', '<', userId + '\uf8ff')
+      );
+      
+      const performanceDocs = await getDocs(performanceQuery);
+      const performances: WordPerformance[] = [];
+      
+      performanceDocs.forEach(doc => {
+        const data = doc.data() as WordPerformance;
+        if (doc.id.startsWith(userId + '_')) {
+          performances.push(data);
+        }
+      });
+
+      let recommendedWords: any[] = [];
+
+      if (sessionType === 'review' || sessionType === 'mixed') {
+        // Get words due for review
+        const reviewWords = SpacedRepetitionSystem.getWordsForReview(
+          performances, 
+          sessionType === 'review' ? maxWords : Math.floor(maxWords * 0.7)
+        );
+        
+        // Convert to full word objects
+        const reviewWordObjects = reviewWords.map(perf => 
+          wordList.find(w => w.word === perf.wordId)
+        ).filter(Boolean);
+        
+        recommendedWords.push(...reviewWordObjects);
+      }
+
+      if (sessionType === 'new' || (sessionType === 'mixed' && recommendedWords.length < maxWords)) {
+        // Get new words to learn
+        const remainingSlots = maxWords - recommendedWords.length;
+        const newWords = SpacedRepetitionSystem.suggestNewWords(
+          performances, 
+          wordList, 
+          remainingSlots,
+          'beginner' // TODO: Determine user level
+        );
+        
+        recommendedWords.push(...newWords);
+      }
+
+      return recommendedWords.slice(0, maxWords);
+      
+    } catch (error) {
+      console.error('Error getting recommended words:', error);
+      // Fallback to random words
+      return wordList
+        .sort(() => Math.random() - 0.5)
+        .slice(0, maxWords);
+    }
+  }
+
+  /**
+   * Update user's learning analytics
+   */
+  private static async updateLearningAnalytics(
+    userId: string, 
+    isCorrect: boolean, 
+    responseTime: number
+  ): Promise<void> {
+    try {
+      const analyticsRef = doc(db, 'learningAnalytics', userId);
+      const analyticsDoc = await getDoc(analyticsRef);
+      
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      if (analyticsDoc.exists()) {
+        const analytics = analyticsDoc.data() as LearningAnalytics;
+        
+        // Update basic stats
+        analytics.totalWordsSeen += 1;
+        if (isCorrect) {
+          // Check if this counts as a "learned" word (>= 80% accuracy)
+          // This would require checking the specific word's performance
+        }
+        
+        // Update streak
+        const lastStudy = new Date(analytics.lastStudyDate);
+        const lastStudyDay = new Date(lastStudy.getFullYear(), lastStudy.getMonth(), lastStudy.getDate());
+        
+        if (today.getTime() === lastStudyDay.getTime()) {
+          // Same day, no streak change
+        } else if (today.getTime() === lastStudyDay.getTime() + 24 * 60 * 60 * 1000) {
+          // Next day, continue streak
+          analytics.currentStreak += 1;
+          analytics.longestStreak = Math.max(analytics.longestStreak, analytics.currentStreak);
+        } else if (today.getTime() > lastStudyDay.getTime() + 24 * 60 * 60 * 1000) {
+          // Missed days, reset streak
+          analytics.currentStreak = 1;
+        }
+        
+        analytics.lastStudyDate = now;
+        
+        // Update daily counters if it's a new day
+        if (today.getTime() !== lastStudyDay.getTime()) {
+          analytics.wordsLearnedToday = isCorrect ? 1 : 0;
+        } else {
+          if (isCorrect) analytics.wordsLearnedToday += 1;
+        }
+        
+        await updateDoc(analyticsRef, analytics);
+        
+      } else {
+        // Create new analytics record
+        const newAnalytics: LearningAnalytics = {
+          userId,
+          totalWordsLearned: 0,
+          totalWordsSeen: 1,
+          overallAccuracy: isCorrect ? 100 : 0,
+          totalStudyTime: 0,
+          currentStreak: 1,
+          longestStreak: 1,
+          lastStudyDate: now,
+          wordsLearnedToday: isCorrect ? 1 : 0,
+          wordsLearnedThisWeek: isCorrect ? 1 : 0,
+          wordsLearnedThisMonth: isCorrect ? 1 : 0,
+          wordsReviewToday: 0,
+          wordsReviewTomorrow: 0,
+          wordsReviewThisWeek: 0,
+          weeklyAccuracy: [isCorrect ? 100 : 0],
+          weeklyWordsLearned: [isCorrect ? 1 : 0],
+          difficultyDistribution: { easy: 0, medium: 1, hard: 0 },
+          articleAccuracy: { der: 0, die: 0, das: 0 }
+        };
+        
+        await setDoc(analyticsRef, newAnalytics);
+      }
+      
+    } catch (error) {
+      console.error('Error updating learning analytics:', error);
+    }
+  }
+
+  /**
+   * Get comprehensive learning analytics for user dashboard
+   */
+  static async getLearningAnalytics(userId: string): Promise<LearningAnalytics | null> {
+    try {
+      const analyticsRef = doc(db, 'learningAnalytics', userId);
+      const analyticsDoc = await getDoc(analyticsRef);
+      
+      if (analyticsDoc.exists()) {
+        return analyticsDoc.data() as LearningAnalytics;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error getting learning analytics:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get words due for review today
+   */
+  static async getReviewSchedule(userId: string): Promise<{
+    today: WordPerformance[];
+    tomorrow: WordPerformance[];
+    thisWeek: WordPerformance[];
+  }> {
+    try {
+      const performanceQuery = query(
+        collection(db, 'wordPerformance'),
+        where('wordId', '>=', userId),
+        where('wordId', '<', userId + '\uf8ff')
+      );
+      
+      const performanceDocs = await getDocs(performanceQuery);
+      const performances: WordPerformance[] = [];
+      
+      performanceDocs.forEach(doc => {
+        const data = doc.data() as WordPerformance;
+        if (doc.id.startsWith(userId + '_')) {
+          performances.push(data);
+        }
+      });
+
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const weekEnd = new Date(today);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+
+      return {
+        today: performances.filter(p => new Date(p.nextReviewDate) <= today),
+        tomorrow: performances.filter(p => {
+          const reviewDate = new Date(p.nextReviewDate);
+          return reviewDate > today && reviewDate <= tomorrow;
+        }),
+        thisWeek: performances.filter(p => {
+          const reviewDate = new Date(p.nextReviewDate);
+          return reviewDate > tomorrow && reviewDate <= weekEnd;
+        })
+      };
+      
+    } catch (error) {
+      console.error('Error getting review schedule:', error);
+      return { today: [], tomorrow: [], thisWeek: [] };
+    }
+  }
+}

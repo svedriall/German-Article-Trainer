@@ -65,8 +65,8 @@ export const useTextToSpeech = () => {
       window.responsiveVoice.cancel();
       
       // Use ResponsiveVoice with German Female voice
-      window.responsiveVoice.speak(text, "German Female", {
-        rate: 0.8, // Slightly slower for clarity
+      window.responsiveVoice.speak(text, "Deutsch Female", {
+        rate: 0.9, // Slightly slower for clarity
         pitch: 1,
         volume: 1,
         onstart: () => {
