@@ -26,12 +26,19 @@ const MainApp: React.FC = () => {
   const [showQuickTest, setShowQuickTest] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
 
-  const currentWord = useMemo(() => shuffledWords[currentIndex], [shuffledWords, currentIndex]);
+  const currentWord = useMemo(() => shuffledWords[currentIndex] || shuffledWords[0], [shuffledWords, currentIndex]);
   const uiText = useMemo(() => translations[language], [language]);
 
   // Show language selector if language not selected yet
   if (!isLanguageSelected) {
     return <LanguageSelector />;
+  }
+
+  // Ensure currentWord is available before rendering main app
+  if (!currentWord) {
+    return <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex items-center justify-center">
+      Loading...
+    </div>;
   }
 
   const handleNextWord = useCallback(() => {
@@ -41,6 +48,7 @@ const MainApp: React.FC = () => {
   }, [shuffledWords.length]);
 
   const handleGuess = useCallback(async (guess: Article) => {
+    if (!currentWord) return; // Safety check for undefined currentWord
     const isCorrectAnswer = guess.toLowerCase() === currentWord.article;
     
     if (isCorrectAnswer) {
