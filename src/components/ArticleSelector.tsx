@@ -86,21 +86,4 @@ const ArticleSelector: React.FC<ArticleSelectorProps> = ({ mode, onGuess, isCorr
   );
 };
 
-// Add shake animation keyframes to Tailwind config or a style tag if needed.
-// For simplicity here, we can add it to index.html or rely on a CSS-in-JS solution.
-// Let's add it via a simple style tag in the component (not ideal but works for this setup).
-const style = document.createElement('style');
-style.innerHTML = `
-@keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
-}
-.animate-shake {
-  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-}`;
-document.head.appendChild(style);
-
-
 export default ArticleSelector;

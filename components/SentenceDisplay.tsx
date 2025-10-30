@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Word, Language } from '../types';
 import SpeakerIcon from './SpeakerIcon';
@@ -39,17 +38,5 @@ const SentenceDisplay: React.FC<SentenceDisplayProps> = ({ word, language }) => 
     </div>
   );
 };
-
-// Add fade-in animation
-const style = document.createElement('style');
-style.innerHTML = `
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}`;
-document.head.appendChild(style);
 
 export default SentenceDisplay;

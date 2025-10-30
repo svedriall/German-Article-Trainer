@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Word, Language } from '../types';
+import { Word, Language, Article } from '../types';
 import SpeakerIcon from './SpeakerIcon';
 
 interface WordDisplayProps {
@@ -9,8 +8,14 @@ interface WordDisplayProps {
   showResult: boolean;
 }
 
+const articleColorClasses: Record<Article, string> = {
+  der: 'text-der',
+  die: 'text-die',
+  das: 'text-das',
+};
+
 const WordDisplay: React.FC<WordDisplayProps> = ({ word, language, showResult }) => {
-  const articleColor = showResult ? `text-${word.article}` : 'text-white';
+  const articleColor = showResult ? articleColorClasses[word.article] : 'text-white';
   
   return (
     <div className="flex flex-col items-center">
