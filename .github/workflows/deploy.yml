@@ -36,11 +36,16 @@ jobs:
         run: npm ci
       - name: Debug Environment Variables
         run: |
-          echo "Checking if Firebase secrets are configured..."
+          echo "Checking if secrets are configured..."
           if [ -z "${{ secrets.VITE_FIREBASE_API_KEY }}" ]; then
             echo "❌ VITE_FIREBASE_API_KEY is not set"
           else
             echo "✅ VITE_FIREBASE_API_KEY is configured"
+          fi
+          if [ -z "${{ secrets.RESPONSIVE_VOICE_JS_KEY }}" ]; then
+            echo "❌ RESPONSIVE_VOICE_JS_KEY is not set"
+          else
+            echo "✅ RESPONSIVE_VOICE_JS_KEY is configured"
           fi
       - name: Build
         run: npm run build
@@ -51,6 +56,7 @@ jobs:
           VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          RESPONSIVE_VOICE_JS_KEY: ${{ secrets.RESPONSIVE_VOICE_JS_KEY }}
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
