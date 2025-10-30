@@ -38,3 +38,15 @@ npm run dev
 ```
 
 This will start a local development server, and you can view your app in the browser at the URL it provides (usually `http://localhost:5173`). The server supports hot-reloading, so changes you make to the code will appear instantly.
+
+## Troubleshooting Deployment
+
+If your deployed site at `https://<YOUR_USERNAME>.github.io/german-article-trainer/` is showing a blank page or 404 errors for assets, please double-check your GitHub Pages settings.
+
+1.  Go to your repository on GitHub.
+2.  Click the **Settings** tab.
+3.  In the left sidebar, click on **Pages**.
+4.  Under "Build and deployment", ensure the **Source** is set to **GitHub Actions**.
+5.  If it was set to "Deploy from a branch", change it to "GitHub Actions". After changing, you may need to re-run the deployment workflow by pushing a new commit to the `main` branch or by manually triggering it from the "Actions" tab.
+
+This is the most common cause of deployment issues for Vite projects using GitHub Actions, as it ensures that the built files from the `dist` directory are served, not the source code from your repository root.
