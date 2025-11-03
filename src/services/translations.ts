@@ -7,6 +7,7 @@ interface UITranslations {
   profileButton: string;
   signInButton: string;
   quickTestButton: string;
+  matchWordsButton: string;
 
   // Header.tsx
   appTitle: string;
@@ -61,6 +62,7 @@ export const translations: Record<Language, UITranslations> = {
     profileButton: '👤 Profile',
     signInButton: '🔒 Sign In',
     quickTestButton: '⚡ Quick Test',
+    matchWordsButton: '⚡ Word Blitz',
     appTitle: 'German Article Trainer',
     selectButton: 'Select',
     writeButton: 'Write',
@@ -99,6 +101,7 @@ export const translations: Record<Language, UITranslations> = {
     profileButton: '👤 Profil',
     signInButton: '🔒 Giriş Yap',
     quickTestButton: '⚡ Hızlı Test',
+    matchWordsButton: '⚡ Kelime Fırtınası',
     appTitle: 'Almanca Artikel Alıştırması',
     selectButton: 'Seç',
     writeButton: 'Yaz',

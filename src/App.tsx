@@ -7,6 +7,7 @@ import ArticleSelector from './components/ArticleSelector';
 import SentenceDisplay from './components/SentenceDisplay';
 import AuthComponent from './components/AuthComponent';
 import QuickTest from './components/QuickTest';
+import MatchTheWord from './components/MatchTheWord';
 import UserStatsBar from './components/UserStatsBar';
 import LanguageSelector from './components/LanguageSelector';
 import { translations } from './services/translations';
@@ -24,6 +25,7 @@ const MainApp: React.FC = () => {
   const [showResult, setShowResult] = useState(false);
   const [shuffledWords, setShuffledWords] = useState<Word[]>(() => [...wordList].sort(() => Math.random() - 0.5));
   const [showQuickTest, setShowQuickTest] = useState(false);
+  const [showMatchTheWord, setShowMatchTheWord] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
 
   const currentWord = useMemo(() => shuffledWords[currentIndex] || shuffledWords[0], [shuffledWords, currentIndex]);
@@ -76,6 +78,7 @@ const MainApp: React.FC = () => {
   };
 
   const closeQuickTest = () => setShowQuickTest(false);
+  const closeMatchTheWord = () => setShowMatchTheWord(false);
   const closeAuth = () => setShowAuth(false);
   const openAuth = () => setShowAuth(true);
   const openQuickTest = () => setShowQuickTest(true);
@@ -84,6 +87,7 @@ const MainApp: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
       <div className="flex flex-col min-h-screen">
         {showQuickTest && <QuickTest onClose={closeQuickTest} />}
+        {showMatchTheWord && <MatchTheWord onClose={closeMatchTheWord} />}
         {showAuth && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
             <div className="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
@@ -116,6 +120,13 @@ const MainApp: React.FC = () => {
             className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-sm sm:px-4 sm:text-base rounded transition-colors"
           >
             {uiText.quickTestButton}
+          </button>
+          
+          <button
+            onClick={() => setShowMatchTheWord(true)}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 text-sm sm:px-4 sm:text-base rounded transition-colors"
+          >
+            {uiText.matchWordsButton}
           </button>
         </div>
 
