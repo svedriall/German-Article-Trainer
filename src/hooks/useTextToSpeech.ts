@@ -64,14 +64,41 @@ export const useTextToSpeech = () => {
       // Cancel any current speech
       window.responsiveVoice.cancel();
       
-      // Use ResponsiveVoice with German Female voice
-      window.responsiveVoice.speak(text, "Deutsch Female", {
+      // Try ResponsiveVoice with correct German voice names
+      let germanVoice: string | undefined = "Deutsch Female"; // ResponsiveVoice's actual German voice name
+      
+      // Verify the voice exists
+      try {
+        const voices = window.responsiveVoice.getVoices();
+        const voiceExists = voices.some(v => v.name === germanVoice);
+        
+        if (!voiceExists) {
+          console.warn('⚠️ Deutsch Female not found, trying Deutsch Male...');
+          const maleVoiceExists = voices.some(v => v.name === 'Deutsch Male');
+          
+          if (maleVoiceExists) {
+            germanVoice = 'Deutsch Male';
+            console.log('✅ Using Deutsch Male voice instead');
+          } else {
+            console.warn('⚠️ No Deutsch voices found, using system default');
+            germanVoice = undefined; // Use system default
+          }
+        }
+      } catch (error) {
+        console.error('Error verifying voice:', error);
+        germanVoice = undefined; // Fallback to system default
+      }
+      
+      console.log('🎯 Final voice selection:', germanVoice || 'system default');
+      
+      // Use ResponsiveVoice with selected German voice
+      window.responsiveVoice.speak(text, germanVoice, {
         rate: 0.9, // Slightly slower for clarity
         pitch: 1,
         volume: 1,
         onstart: () => {
           setIsPlaying(true);
-          console.log('🗣️ ResponsiveVoice: Started speaking');
+          console.log('🗣️ ResponsiveVoice: Started speaking with voice:', germanVoice);
         },
         onend: () => {
           setIsPlaying(false);
@@ -79,6 +106,8 @@ export const useTextToSpeech = () => {
         },
         onerror: (event) => {
           console.error('❌ ResponsiveVoice Error:', event);
+          console.log('🔍 Voice that failed:', germanVoice);
+          console.log('🔄 Attempting fallback to browser TTS...');
           setIsPlaying(false);
           // Fallback to browser TTS on error
           speakWithBrowserTTS(text);
@@ -134,16 +163,38 @@ export const useTextToSpeech = () => {
   };
 
   useEffect(() => {
-    // Log TTS initialization
+    // Log TTS initialization and available voices
     setTimeout(() => {
       if (isResponsiveVoiceAvailable()) {
         console.log('🎉 ResponsiveVoice TTS initialized successfully!');
-        console.log('   • German Female voice available');
-        console.log('   • High-quality pronunciation enabled');
+        
+        try {
+          const voices = window.responsiveVoice.getVoices();
+          console.log('   • All available voices:', voices.map(v => v.name));
+          
+          const deutschFemale = voices.find(v => v.name === 'Deutsch Female');
+          const deutschMale = voices.find(v => v.name === 'Deutsch Male');
+          
+          if (deutschFemale) {
+            console.log('   ✅ Deutsch Female voice is available');
+          } else {
+            console.log('   ❌ Deutsch Female voice not found');
+          }
+          
+          if (deutschMale) {
+            console.log('   ✅ Deutsch Male voice is available');
+          } else {
+            console.log('   ❌ Deutsch Male voice not found');
+          }
+          
+          console.log('   • Total voices available:', voices.length);
+        } catch (error) {
+          console.error('Error checking voices:', error);
+        }
       } else {
         console.log('⚠️ ResponsiveVoice not available, using browser TTS fallback');
       }
-    }, 1000); // Give ResponsiveVoice time to load
+    }, 1500); // Give ResponsiveVoice more time to load
 
     // Cleanup on unmount
     return () => {
