@@ -12,12 +12,18 @@ dist
 dist-ssr
 *.local
 
-# Environment files
+# Environment files - Critical for security!
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Security: API keys and secrets (never commit these!)
+**/config/keys.js
+**/config/secrets.*
+**/*.key
+**/*.pem
 
 # Editor directories and files
 .vscode/*
